@@ -8,37 +8,25 @@ import (
 )
 
 type Config struct {
-	Interval    int              `yaml:"interval"`
-	DetectURLs  []string         `yaml:"detect_urls"`
-	StateFile   string           `yaml:"state_file,omitempty"`
-	FileUpdaters []FileUpdater   `yaml:"file_updaters"`
-	DBUpdaters   []DBUpdater     `yaml:"db_updaters"`
-	Commands     []CommandConfig `yaml:"commands"`
+	Interval     int              `yaml:"interval"`
+	DetectURLs   []string         `yaml:"detect_urls"`
+	StateFile    string           `yaml:"state_file,omitempty"`
+	FileUpdaters []FileUpdater    `yaml:"file_updaters"`
+	Commands     []CommandConfig  `yaml:"commands"`
 }
 
 type FileUpdater struct {
-	Name    string `yaml:"name"`
-	Path    string `yaml:"path"`
-	Old     string `yaml:"old"`
-	New     string `yaml:"new"`
-}
-
-type DBUpdater struct {
-	Name    string       `yaml:"name"`
-	Path    string       `yaml:"path"`
-	Queries []DBQuery    `yaml:"queries"`
-}
-
-type DBQuery struct {
-	SQL  string `yaml:"sql"`
-	Desc string `yaml:"desc,omitempty"`
+	Name string `yaml:"name"`
+	Path string `yaml:"path"`
+	Old  string `yaml:"old"`
+	New  string `yaml:"new"`
 }
 
 type CommandConfig struct {
-	Name    string `yaml:"name"`
-	Cmd     string `yaml:"cmd"`
+	Name    string   `yaml:"name"`
+	Cmd     string   `yaml:"cmd"`
 	Args    []string `yaml:"args,omitempty"`
-	Timeout int    `yaml:"timeout,omitempty"`
+	Timeout int      `yaml:"timeout,omitempty"`
 }
 
 func loadConfig(path string) (*Config, error) {
@@ -52,7 +40,6 @@ func loadConfig(path string) (*Config, error) {
 		return nil, fmt.Errorf("解析配置文件失败: %w", err)
 	}
 
-	// Set defaults
 	if cfg.Interval <= 0 {
 		cfg.Interval = 60
 	}
@@ -98,28 +85,16 @@ func defaultConfig() *Config {
 		FileUpdaters: []FileUpdater{
 			{
 				Name: "引擎控制台-外网IP",
-				Path: `D:\MirServer\Mir200\Envir\MapQuest.txt`,
+				Path: `D:\MirServer\Mir200\Envir\!Setup.txt`,
 				Old:  `YOUR_OLD_IP`,
 				New:  `{{.IP}}`,
 			},
 		},
-		DBUpdaters: []DBUpdater{
-			{
-				Name: "微端网关-服务器地址",
-				Path: `D:\MirServer\微端网关\wd.db`,
-				Queries: []DBQuery{
-					{
-						SQL:  `UPDATE server_list SET address = '{{.IP}}'`,
-						Desc: "更新微端服务器地址",
-					},
-				},
-			},
-		},
 		Commands: []CommandConfig{
 			{
-				Name:    "重启微端网关",
-				Cmd:     `cmd`,
-				Args:    []string{"/c", "echo IP已更新，请手动重启微端网关"},
+				Name: "更新微端网关数据库",
+				Cmd:  `cmd`,
+				Args: []string{"/c", "echo 请配置微端网关更新命令"},
 				Timeout: 30,
 			},
 		},

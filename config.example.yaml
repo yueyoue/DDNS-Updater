@@ -1,12 +1,12 @@
 # ============================================
 # DDNS-Updater 配置文件
-# 自动检测公网IP变化，更新引擎控制台和微端网关
+# 自动检测公网IP变化，更新传奇引擎控制台和微端网关
 # ============================================
 
-# 检测间隔（秒），建议60秒
+# 检测间隔（秒）
 interval: 60
 
-# 公网IP检测源（多个备用，自动切换）
+# 公网IP检测源（多个备用）
 detect_urls:
   - https://api.ipify.org
   - https://ifconfig.me/ip
@@ -15,45 +15,45 @@ detect_urls:
 
 # ============================================
 # 文件更新器 - 自动替换配置文件中的IP
+# old: 填写当前IP（第一次手动填，之后程序自动维护）
+# new: {{.IP}} 会自动替换为检测到的新IP
 # ============================================
 file_updaters:
-  # 引擎控制台配置 - 根据你的实际路径修改
+  # 引擎控制台配置文件
   - name: 引擎控制台-外网IP
-    path: 'D:\MirServer\Mir200\Envir\MapQuest.txt'
-    old: '111.111.111.111'         # 替换为你的旧IP或占位符
-    new: '{{.IP}}'                  # 自动替换为新IP
+    path: 'D:\MirServer\Mir200\Envir\!Setup.txt'
+    old: '111.111.111.111'
+    new: '{{.IP}}'
 
-  # 服务端配置文件
-  - name: 服务端-外网地址
-    path: 'D:\MirServer\Mir200\!Setup.txt'
+  # 微端网关配置文件（如果用的是文本配置）
+  - name: 微端网关-服务器地址
+    path: 'D:\MirServer\微端网关\config.ini'
     old: '111.111.111.111'
     new: '{{.IP}}'
 
 # ============================================
-# 数据库更新器 - 自动更新SQLite数据库中的IP
-# ============================================
-db_updaters:
-  # 微端网关数据库 - 根据你的实际路径修改
-  - name: 微端网关-服务器地址
-    path: 'D:\MirServer\微端网关\wd.db'
-    queries:
-      - sql: "UPDATE server_list SET address = '{{.IP}}'"
-        desc: 更新微端服务器地址
-      - sql: "UPDATE config SET value = '{{.IP}}' WHERE key = 'ServerAddress'"
-        desc: 更新配置表中的服务器地址
-
-# ============================================
 # 命令执行器 - IP更新后自动执行命令
+# 用于更新SQLite数据库、重启服务等
 # ============================================
 commands:
-  # IP更新后自动重启微端网关服务
+  # 用sqlite3命令行更新微端网关数据库
+  - name: 更新微端网关数据库
+    cmd: 'cmd'
+    args:
+      - '/c'
+      - 'sqlite3'
+      - 'D:\MirServer\微端网关\wd.db'
+      - "UPDATE server_list SET address='{{.IP}}';UPDATE config SET value='{{.IP}}' WHERE key='ServerAddress';"
+    timeout: 30
+
+  # 重启微端网关服务
   - name: 重启微端网关
     cmd: 'cmd'
     args: ['/c', 'net', 'restart', 'WDGateway']
     timeout: 30
 
-  # 可选：重启引擎控制台
+  # 重启引擎控制台（可选）
   # - name: 重启引擎
   #   cmd: 'cmd'
-  #   args: ['/c', 'taskkill', '/f', '/im', 'GameCenter.exe', '&', 'start', '', 'D:\MirServer\GameCenter.exe']
+  #   args: ['/c', 'taskkill /f /im GameCenter.exe & start "" D:\MirServer\GameCenter.exe']
   #   timeout: 30

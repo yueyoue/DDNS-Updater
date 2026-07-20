@@ -16,10 +16,8 @@ var (
 )
 
 func main() {
-	// Determine config path
 	configPath := getConfigPath()
 
-	// Check command line args
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "init":
@@ -41,16 +39,13 @@ func main() {
 		}
 	}
 
-	// Default: run as daemon
 	runDaemon(configPath)
 }
 
 func getConfigPath() string {
-	// Check environment variable
 	if p := os.Getenv("DDNS_CONFIG"); p != "" {
 		return p
 	}
-	// Use exe directory
 	exe, err := os.Executable()
 	if err != nil {
 		return "config.yaml"
@@ -107,16 +102,14 @@ func runDaemon(configPath string) {
 	log.Printf("检测间隔: %d秒", cfg.Interval)
 	log.Printf("公网IP检测源: %d个", len(cfg.DetectURLs))
 	log.Printf("文件更新器: %d个", len(cfg.FileUpdaters))
-	log.Printf("数据库更新器: %d个", len(cfg.DBUpdaters))
+	log.Printf("自动命令: %d个", len(cfg.Commands))
 
-	// Graceful shutdown
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	ticker := time.NewTicker(time.Duration(cfg.Interval) * time.Second)
 	defer ticker.Stop()
 
-	// Run immediately
 	runCheck(cfg)
 
 	for {
@@ -156,7 +149,6 @@ func checkAndUpdate(cfg *Config, newIP string) (changed bool, oldIP string, err 
 		return false, oldIP, nil
 	}
 
-	// IP changed, update all targets
 	log.Printf("🔄 IP变化: %s -> %s，开始更新...", oldIP, newIP)
 
 	for i := range cfg.FileUpdaters {
@@ -165,15 +157,6 @@ func checkAndUpdate(cfg *Config, newIP string) (changed bool, oldIP string, err 
 			log.Printf("  ❌ 文件更新失败 [%s]: %v", u.Name, err)
 		} else {
 			log.Printf("  ✅ 文件已更新 [%s]: %s", u.Name, u.Path)
-		}
-	}
-
-	for i := range cfg.DBUpdaters {
-		u := &cfg.DBUpdaters[i]
-		if err := updateDatabase(u, newIP); err != nil {
-			log.Printf("  ❌ 数据库更新失败 [%s]: %v", u.Name, err)
-		} else {
-			log.Printf("  ✅ 数据库已更新 [%s]: %s", u.Name, u.Path)
 		}
 	}
 
