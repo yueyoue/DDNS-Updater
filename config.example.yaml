@@ -1,0 +1,59 @@
+# ============================================
+# DDNS-Updater 配置文件
+# 自动检测公网IP变化，更新引擎控制台和微端网关
+# ============================================
+
+# 检测间隔（秒），建议60秒
+interval: 60
+
+# 公网IP检测源（多个备用，自动切换）
+detect_urls:
+  - https://api.ipify.org
+  - https://ifconfig.me/ip
+  - https://icanhazip.com
+  - https://ipecho.net/plain
+
+# ============================================
+# 文件更新器 - 自动替换配置文件中的IP
+# ============================================
+file_updaters:
+  # 引擎控制台配置 - 根据你的实际路径修改
+  - name: 引擎控制台-外网IP
+    path: 'D:\MirServer\Mir200\Envir\MapQuest.txt'
+    old: '111.111.111.111'         # 替换为你的旧IP或占位符
+    new: '{{.IP}}'                  # 自动替换为新IP
+
+  # 服务端配置文件
+  - name: 服务端-外网地址
+    path: 'D:\MirServer\Mir200\!Setup.txt'
+    old: '111.111.111.111'
+    new: '{{.IP}}'
+
+# ============================================
+# 数据库更新器 - 自动更新SQLite数据库中的IP
+# ============================================
+db_updaters:
+  # 微端网关数据库 - 根据你的实际路径修改
+  - name: 微端网关-服务器地址
+    path: 'D:\MirServer\微端网关\wd.db'
+    queries:
+      - sql: "UPDATE server_list SET address = '{{.IP}}'"
+        desc: 更新微端服务器地址
+      - sql: "UPDATE config SET value = '{{.IP}}' WHERE key = 'ServerAddress'"
+        desc: 更新配置表中的服务器地址
+
+# ============================================
+# 命令执行器 - IP更新后自动执行命令
+# ============================================
+commands:
+  # IP更新后自动重启微端网关服务
+  - name: 重启微端网关
+    cmd: 'cmd'
+    args: ['/c', 'net', 'restart', 'WDGateway']
+    timeout: 30
+
+  # 可选：重启引擎控制台
+  # - name: 重启引擎
+  #   cmd: 'cmd'
+  #   args: ['/c', 'taskkill', '/f', '/im', 'GameCenter.exe', '&', 'start', '', 'D:\MirServer\GameCenter.exe']
+  #   timeout: 30

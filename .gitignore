@@ -1,0 +1,5 @@
+*.exe
+*.db
+.ddns-state
+config.yaml
+log.txt
