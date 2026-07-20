@@ -27,10 +27,8 @@ jobs:
         env:
           GOOS: windows
           GOARCH: amd64
-          CGO_ENABLED: 1
-          CC: x86_64-w64-mingw32-gcc
+          CGO_ENABLED: 0
         run: |
-          sudo apt-get update && sudo apt-get install -y gcc-mingw-w64-x86-64
           VERSION=$(git describe --tags --always 2>/dev/null || echo "dev")
           go build -ldflags="-s -w -X main.Version=${VERSION} -X main.BuildTime=$(date -u +%Y%m%d)" \
             -o ddns-updater.exe .
@@ -39,10 +37,8 @@ jobs:
         env:
           GOOS: windows
           GOARCH: 386
-          CGO_ENABLED: 1
-          CC: i686-w64-mingw32-gcc
+          CGO_ENABLED: 0
         run: |
-          sudo apt-get install -y gcc-mingw-w64-i686
           VERSION=$(git describe --tags --always 2>/dev/null || echo "dev")
           go build -ldflags="-s -w -X main.Version=${VERSION} -X main.BuildTime=$(date -u +%Y%m%d)" \
             -o ddns-updater-x86.exe .

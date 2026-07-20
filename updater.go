@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 // updateFile replaces IP in a text config file
@@ -23,7 +23,6 @@ func updateFile(u *FileUpdater, newIP string) error {
 	newVal := strings.ReplaceAll(u.New, "{{.IP}}", newIP)
 
 	if !strings.Contains(content, oldVal) {
-		// Already updated or pattern not found
 		return nil
 	}
 
@@ -33,7 +32,7 @@ func updateFile(u *FileUpdater, newIP string) error {
 
 // updateDatabase updates IP in SQLite database
 func updateDatabase(u *DBUpdater, newIP string) error {
-	db, err := sql.Open("sqlite3", u.Path)
+	db, err := sql.Open("sqlite", u.Path)
 	if err != nil {
 		return fmt.Errorf("打开数据库失败: %w", err)
 	}
@@ -41,13 +40,9 @@ func updateDatabase(u *DBUpdater, newIP string) error {
 
 	for _, q := range u.Queries {
 		sqlStr := strings.ReplaceAll(q.SQL, "{{.IP}}", newIP)
-		result, err := db.Exec(sqlStr)
+		_, err := db.Exec(sqlStr)
 		if err != nil {
 			return fmt.Errorf("执行SQL失败 [%s]: %w", q.Desc, err)
-		}
-		rows, _ := result.RowsAffected()
-		if rows > 0 {
-			// Updated successfully
 		}
 	}
 
